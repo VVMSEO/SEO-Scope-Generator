@@ -260,9 +260,15 @@ export async function uploadClientChecklist(
     }
 
     try {
-      const res = await fetch(downloadUrl);
-      if (!res.ok) throw new Error(`Ошибка загрузки: Google выдал код ${res.status}`);
-      const text = await res.text();
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(downloadUrl)}`;
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error(`Ошибка прокси: ${res.status}`);
+      const data = await res.json();
+      const text = data.contents;
+
+      if (!text) {
+        throw new Error("Пустой ответ от прокси.");
+      }
 
       if (text.includes("<!DOCTYPE html>") || text.includes("ServiceLogin") || text.includes("google-signin")) {
         throw new Error("Документ закрыт настройками приватности Google. Откройте доступ по ссылке 'Все у кого есть ссылка -> Читатель'.");
@@ -272,7 +278,7 @@ export async function uploadClientChecklist(
         title = isSpreadsheet ? "Таблица Google Таблиц" : "Текст Google Документа";
       }
     } catch (err: any) {
-      throw new Error(`Не удалось скачать документ: ${err.message}. Скопируйте текст вручную.`);
+      throw new Error(`Не удалось скачать документ: ${err.message}. Пожалуйста, скопируйте текст вручную.`);
     }
   }
 

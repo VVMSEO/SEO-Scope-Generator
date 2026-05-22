@@ -56,8 +56,8 @@ export function parseChecklistText(rawText: string): ParsedItem[] {
       raw_task = taskMatchNum[2].trim();
       isMatch = true;
     } else {
-      // 2. Format: - [ ] [Task name] or * [Task name]
-      const taskMatchBullet = line.match(/^(?:[\-\*]\s+|\s*\[\s*[xX]?\s*\]\s*|☐\s+)(?:\s*\[\s*[xX]?\s*\]\s*)?(.+)$/i);
+      // 2. Format: - [ ] [Task name] or * [Task name] or • [Task name]
+      const taskMatchBullet = line.match(/^(?:[\-\*•·○▪]\s+|\s*\[\s*[xX]?\s*\]\s*|☐\s+)(?:\s*\[\s*[xX]?\s*\]\s*)?(.+)$/i);
       if (taskMatchBullet) {
         id = autoLocalId++;
         raw_task = taskMatchBullet[1].trim();
@@ -100,6 +100,27 @@ export function parseChecklistText(rawText: string): ParsedItem[] {
     if (line.length > 2 && line.length < 150 && !line.toLowerCase().includes('пункт') && !line.includes('Итого:') && !/^_+$/.test(line) && line.toLowerCase() !== 'оглавление') {
       currentSection = line.replace(/^\d+\.\s*/, '');
       continue;
+    }
+  }
+
+  if (items.length === 0) {
+    let localId = 9000;
+    let sec = "Задачи";
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      if (line.toLowerCase().includes('пункт') || line.includes('Итого:') || /^_+$/.test(line) || line.toLowerCase() === 'оглавление' || line.startsWith('Мастер SEO-чек-лист') || line.startsWith('Формат')) continue;
+
+      if (line.length <= 40 && !line.includes('.') && !line.includes(',') && !line.toLowerCase().includes('задачи')) {
+        sec = line;
+      } else {
+        items.push({
+          id: localId++,
+          section: sec,
+          raw_task: line.replace(/^[•·○▪\-\*\d\.\s]+/, '').trim(),
+          priority: 'optional'
+        });
+      }
     }
   }
 
