@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Secure user space: only owners can read or write documents under their path
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /projects/{projectId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /checklists/{checklistId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /tasks/{taskId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /generated_scopes/{scopeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /llm_providers/{providerId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}

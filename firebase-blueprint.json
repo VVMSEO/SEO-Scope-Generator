@@ -1,0 +1,152 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "User SEO Project Profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "site_url": { "type": "string" },
+        "site_type": { "type": "string" },
+        "niche": { "type": "string" },
+        "geography": { "type": "string" },
+        "budget_level": { "type": "string" },
+        "duration_months": { "type": "integer" },
+        "has_catalog": { "type": "boolean" },
+        "has_blog": { "type": "boolean" },
+        "has_filters": { "type": "boolean" },
+        "has_ecommerce": { "type": "boolean" },
+        "has_local_seo": { "type": "boolean" },
+        "has_multilingual": { "type": "boolean" },
+        "has_ymyl": { "type": "boolean" },
+        "has_migration": { "type": "boolean" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" }
+      },
+      "required": ["id", "name", "site_url", "site_type"]
+    },
+    "Checklist": {
+      "title": "Checklist",
+      "description": "Uploaded or Default Checklist",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "title": { "type": "string" },
+        "version": { "type": "string" },
+        "source_type": { "type": "string" },
+        "raw_content": { "type": "string" },
+        "task_count": { "type": "integer" },
+        "status": { "type": "string" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" }
+      },
+      "required": ["id", "title", "raw_content", "task_count", "status"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Checklist task items with filtering metadata",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "checklist_id": { "type": "integer" },
+        "section": { "type": "string" },
+        "raw_task": { "type": "string" },
+        "priority": { "type": "string" },
+        "default_month": { "type": "integer" },
+        "work_block": { "type": "string" },
+        "work_type": { "type": "string" },
+        "process_text": { "type": "string" },
+        "result_text": { "type": "string" },
+        "artifact_type": { "type": "string" },
+        "contract_text": { "type": "string" },
+        "client_text": { "type": "string" },
+        "internal_text": { "type": "string" },
+        "acceptance_criteria": { "type": "string" },
+        "responsible_role": { "type": "string" },
+        "repeatability": { "type": "string" },
+        "status": { "type": "string" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" },
+        "applicability": {
+          "type": "object",
+          "properties": {
+            "applies_to_all": { "type": "boolean" },
+            "applies_to_ecommerce": { "type": "boolean" },
+            "applies_to_services": { "type": "boolean" },
+            "applies_to_local": { "type": "boolean" },
+            "applies_to_blog": { "type": "boolean" },
+            "applies_to_ymyl": { "type": "boolean" },
+            "requires_catalog": { "type": "boolean" },
+            "requires_filters": { "type": "boolean" },
+            "requires_multilingual": { "type": "boolean" },
+            "requires_migration": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["id", "checklist_id", "section", "raw_task", "priority", "status"]
+    },
+    "GeneratedScope": {
+      "title": "GeneratedScope",
+      "description": "AI Generated monthly plan reports",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "project_id": { "type": "integer" },
+        "checklist_id": { "type": "integer" },
+        "month": { "type": "integer" },
+        "output_mode": { "type": "string" },
+        "contract_text": { "type": "string" },
+        "client_text": { "type": "string" },
+        "internal_checklist": { "type": "string" },
+        "version": { "type": "integer" },
+        "status": { "type": "string" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" },
+        "reviewer_notes": { "type": "string" },
+        "generated_json": { "type": "object" }
+      },
+      "required": ["id", "project_id", "checklist_id", "month", "status", "version"]
+    },
+    "LLMProvider": {
+      "title": "LLMProvider",
+      "description": "Custom user settings for AI APIs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "provider_name": { "type": "string" },
+        "api_endpoint": { "type": "string" },
+        "api_key_encrypted": { "type": "string" },
+        "default_model": { "type": "string" },
+        "temperature": { "type": "number" },
+        "max_tokens": { "type": "integer" },
+        "is_active": { "type": "boolean" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" }
+      },
+      "required": ["id", "provider_name", "api_key_encrypted"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/projects/{projectId}": {
+      "schema": "Project",
+      "description": "User SEO Project Profiles"
+    },
+    "/users/{userId}/checklists/{checklistId}": {
+      "schema": "Checklist",
+      "description": "User Checklists uploaded"
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Checklist tasks inside DB"
+    },
+    "/users/{userId}/generated_scopes/{scopeId}": {
+      "schema": "GeneratedScope",
+      "description": "AI generated monthly scope plans"
+    },
+    "/users/{userId}/llm_providers/{providerId}": {
+      "schema": "LLMProvider",
+      "description": "Custom settings for AI models"
+    }
+  }
+}

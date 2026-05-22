@@ -1,0 +1,6 @@
+{
+  "name": "SEO Scope Generator",
+  "description": "An automated system for generating bespoke client-facing and internal monthly SEO scopes of work from a parsed master checklist using AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
