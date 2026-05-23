@@ -3,6 +3,7 @@ import { Search, Filter, Layers, BadgeHelp, CheckCircle, Sparkles, AlertCircle, 
 import { Task } from "../types.js";
 import { auth } from "../firebase.js";
 import { getClientTasks, updateClientTask, deleteAllClientChecklistsAndTasks } from "../db-client.js";
+import { TaskDetailsPanel } from "./TaskDetailsPanel.js";
 
 interface DatabaseTabProps {
   checklists: any[];
@@ -234,10 +235,10 @@ export default function DatabaseTab({ checklists, onDataChanged }: DatabaseTabPr
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         
         {/* Table representation */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-4 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs overflow-hidden">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
             <h2 className="font-bold text-slate-800 flex items-center space-x-2">
               <Layers className="h-4.5 w-4.5 text-blue-500" />
@@ -274,11 +275,11 @@ export default function DatabaseTab({ checklists, onDataChanged }: DatabaseTabPr
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredTasks.map((task) => (
+                  <React.Fragment key={task.id}>
                   <tr
-                    key={task.id}
                     onClick={() => handleSelectTask(task)}
-                    className={`hover:bg-slate-50 cursor-pointer transition-colors ${
-                      selectedTask?.id === task.id ? "bg-blue-50/40" : ""
+                    className={`hover:bg-slate-50 cursor-pointer transition-colors border-l-4 ${
+                      selectedTask?.id === task.id ? "bg-blue-50/70 border-blue-500" : "border-transparent"
                     }`}
                   >
                     <td className="py-2.5 px-3 font-mono font-semibold text-blue-600">
@@ -301,252 +302,26 @@ export default function DatabaseTab({ checklists, onDataChanged }: DatabaseTabPr
                       </span>
                     </td>
                   </tr>
+                  {selectedTask?.id === task.id && (
+                    <tr className="border-b border-slate-200">
+                      <td colSpan={5} className="p-0">
+                        <TaskDetailsPanel
+                           task={selectedTask}
+                           isEditing={isEditing}
+                           setIsEditing={setIsEditing}
+                           editedTask={editedTask}
+                           setEditedTask={setEditedTask}
+                           handleSaveEdit={handleSaveEdit}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
-
-        {/* Edit Panel Drawer */}
-        <div className="lg:col-span-1">
-          {selectedTask ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                  <span className="font-mono text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">
-                    ID {selectedTask.id}
-                  </span>
-                  <h3 className="font-extrabold text-slate-900 mt-1">Обогащенные данные</h3>
-                </div>
-
-                <div className="flex items-center space-x-1">
-                  {isEditing ? (
-                    <>
-                      <button
-                        onClick={handleSaveEdit}
-                        className="p-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-[10px] flex items-center space-x-1 cursor-pointer"
-                      >
-                        <Save className="h-3 w-3" />
-                        <span>Да</span>
-                      </button>
-                      <button
-                        onClick={() => setIsEditing(false)}
-                        className="p-1 px-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-[10px] cursor-pointer"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="p-1 px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded font-bold text-[10px] flex items-center space-x-1 cursor-pointer"
-                    >
-                      <Edit3 className="h-3.5 w-3.5" />
-                      <span>Изм.</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Scrolable detailed info fields block */}
-              <div className="space-y-4 max-h-120 overflow-y-auto pr-1">
-                <div className="space-y-3.5 text-xs border-b border-slate-100 pb-3">
-                  {/* Task Priority & Default Month */}
-                  <div className="grid grid-cols-2 gap-3.5">
-                    <div>
-                      <span className="block text-[10px] font-semibold text-slate-400">Приоритет</span>
-                      {isEditing ? (
-                        <select
-                          value={editedTask.priority || ''}
-                          onChange={(e) => setEditedTask({ ...editedTask, priority: e.target.value })}
-                          className="w-full text-xs rounded border border-slate-200 px-2 py-1 bg-slate-50 outline-none"
-                        >
-                          <option value="critical">🔴 Критично</option>
-                          <option value="important">🟡 Важно</option>
-                          <option value="optional">🟢 Опционально</option>
-                        </select>
-                      ) : (
-                        <p className="font-semibold text-slate-800 capitalize">
-                          {selectedTask.priority === 'critical' ? '🔴 Критично' : selectedTask.priority === 'important' ? '🟡 Важно' : '🟢 Опционально'}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <span className="block text-[10px] font-semibold text-slate-400">Срок по умолчанию</span>
-                      {isEditing ? (
-                        <select
-                          value={editedTask.default_month || 1}
-                          onChange={(e) => setEditedTask({ ...editedTask, default_month: parseInt(e.target.value, 10) })}
-                          className="w-full text-xs rounded border border-slate-200 px-2 py-1 bg-slate-50 outline-none"
-                        >
-                          {[1, 2, 3, 4, 5, 6].map(m => (
-                            <option key={m} value={m}>Месяц {m}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <p className="font-bold text-slate-800 font-mono">Месяц {selectedTask.default_month}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* SOW Смысловой Блок & Тип работы */}
-                  <div className="grid grid-cols-2 gap-3.5">
-                    <div>
-                      <span className="block text-[10px] font-semibold text-slate-400">Смысловой блок SOW</span>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editedTask.work_block || ''}
-                          onChange={(e) => setEditedTask({ ...editedTask, work_block: e.target.value })}
-                          className="w-full text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                        />
-                      ) : (
-                        <p className="font-semibold text-slate-800">{selectedTask.work_block || "—"}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <span className="block text-[10px] font-semibold text-slate-400">Тип SEO работ</span>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editedTask.work_type || ''}
-                          onChange={(e) => setEditedTask({ ...editedTask, work_type: e.target.value })}
-                          className="w-full text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                        />
-                      ) : (
-                        <p className="font-semibold text-slate-800">{selectedTask.work_type || "—"}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Process */}
-                  <div>
-                    <span className="block text-[10px] font-semibold text-slate-400">Процесс исполнения</span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editedTask.process_text || ''}
-                        onChange={(e) => setEditedTask({ ...editedTask, process_text: e.target.value })}
-                        className="w-full text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                      />
-                    ) : (
-                      <p className="text-slate-700">{selectedTask.process_text || "—"}</p>
-                    )}
-                  </div>
-
-                  {/* Result & Artifact */}
-                  <div>
-                    <span className="block text-[10px] font-semibold text-slate-400">Результат / Артефакт</span>
-                    {isEditing ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="text"
-                          value={editedTask.result_text || ''}
-                          placeholder="Результат"
-                          onChange={(e) => setEditedTask({ ...editedTask, result_text: e.target.value })}
-                          className="text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                        />
-                        <input
-                          type="text"
-                          value={editedTask.artifact_type || ''}
-                          placeholder="Артефакт"
-                          onChange={(e) => setEditedTask({ ...editedTask, artifact_type: e.target.value })}
-                          className="text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                        />
-                      </div>
-                    ) : (
-                      <p className="text-slate-700">
-                        {selectedTask.result_text || "—"} <span className="text-slate-400 font-mono">({selectedTask.artifact_type})</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Contract Version */}
-                  <div>
-                    <span className="block text-[10px] font-semibold text-slate-400">Версия для Договора (кратко)</span>
-                    {isEditing ? (
-                      <textarea
-                        value={editedTask.contract_text || ''}
-                        onChange={(e) => setEditedTask({ ...editedTask, contract_text: e.target.value })}
-                        className="w-full text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                        rows={2}
-                      />
-                    ) : (
-                      <p className="text-slate-700 italic">{selectedTask.contract_text || "—"}</p>
-                    )}
-                  </div>
-
-                  {/* Client Version */}
-                  <div>
-                    <span className="block text-[10px] font-semibold text-slate-400">Версия для Клиента (Простыми словами)</span>
-                    {isEditing ? (
-                      <textarea
-                        value={editedTask.client_text || ''}
-                        onChange={(e) => setEditedTask({ ...editedTask, client_text: e.target.value })}
-                        className="w-full text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                        rows={2}
-                      />
-                    ) : (
-                      <p className="text-slate-700">{selectedTask.client_text || "—"}</p>
-                    )}
-                  </div>
-
-                  {/* Internal SOW */}
-                  <div>
-                    <span className="block text-[10px] font-semibold text-slate-400">Внутренний чек-лист (Для SEO-специалиста)</span>
-                    {isEditing ? (
-                      <textarea
-                        value={editedTask.internal_text || ''}
-                        onChange={(e) => setEditedTask({ ...editedTask, internal_text: e.target.value })}
-                        className="w-full text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                        rows={2}
-                      />
-                    ) : (
-                      <p className="text-slate-700">{selectedTask.internal_text || "—"}</p>
-                    )}
-                  </div>
-
-                  {/* Acceptance Criteria */}
-                  <div>
-                    <span className="block text-[10px] font-semibold text-slate-400">Критерий приёмки</span>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editedTask.acceptance_criteria || ''}
-                        onChange={(e) => setEditedTask({ ...editedTask, acceptance_criteria: e.target.value })}
-                        className="w-full text-xs rounded border border-slate-200 p-1 bg-slate-50"
-                      />
-                    ) : (
-                      <p className="text-slate-700">{selectedTask.acceptance_criteria || "—"}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="pt-3">
-                  <span className="block font-semibold text-slate-500 mb-1">Роли и повторяемость</span>
-                  <div className="flex space-x-4">
-                    <div>
-                      <span className="text-[10px] text-slate-400 block uppercase">Роль</span>
-                      <span className="font-sans font-medium">{selectedTask.responsible_role || "SEO-специалист"}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block uppercase">Частота</span>
-                      <span className="font-sans font-medium">{selectedTask.repeatability || "Разово"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-slate-400 font-sans shadow-xs">
-              <BadgeHelp className="h-10 w-10 mx-auto opacity-40 mb-2" />
-              <p className="text-sm">Выберите строку задачи в таблице для детального просмотра и ручной нормализации параметров.</p>
-            </div>
-          )}
-        </div>
-
       </div>
     </div>
   );
