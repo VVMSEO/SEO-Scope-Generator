@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit3, Save, X } from "lucide-react";
+import { Edit3, Save, X, Sparkles } from "lucide-react";
 import { Task } from "../types.js";
 
 interface TaskDetailsPanelProps {
@@ -9,6 +9,8 @@ interface TaskDetailsPanelProps {
   editedTask: Partial<Task>;
   setEditedTask: (t: Partial<Task>) => void;
   handleSaveEdit: () => void;
+  onRegenerateTask?: () => void;
+  isRegenerating?: boolean;
 }
 
 export function TaskDetailsPanel({
@@ -17,7 +19,9 @@ export function TaskDetailsPanel({
   setIsEditing,
   editedTask,
   setEditedTask,
-  handleSaveEdit
+  handleSaveEdit,
+  onRegenerateTask,
+  isRegenerating
 }: TaskDetailsPanelProps) {
   return (
     <div className="bg-slate-50 border border-t-0 border-slate-200 p-5 shadow-inner space-y-4 rounded-b-xl w-full">
@@ -49,13 +53,25 @@ export function TaskDetailsPanel({
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="p-1 px-2.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded font-bold text-[10px] flex items-center space-x-1 cursor-pointer"
-            >
-              <Edit3 className="h-3.5 w-3.5" />
-              <span>Редактировать</span>
-            </button>
+            <>
+              {onRegenerateTask && (
+                <button
+                  onClick={onRegenerateTask}
+                  disabled={isRegenerating}
+                  className="p-1 px-2.5 bg-indigo-100 hover:bg-indigo-200 disabled:opacity-50 text-indigo-800 rounded font-bold text-[10px] flex items-center space-x-1 cursor-pointer transition-colors"
+                >
+                  <Sparkles className={`h-3.5 w-3.5 ${isRegenerating ? "animate-pulse" : ""}`} />
+                  <span>{isRegenerating ? "Генерация..." : "ТЗ ИИ"}</span>
+                </button>
+              )}
+              <button
+                onClick={() => setIsEditing(true)}
+                className="p-1 px-2.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded font-bold text-[10px] flex items-center space-x-1 cursor-pointer transition-colors"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Редактировать</span>
+              </button>
+            </>
           )}
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Search, Filter, Layers, BadgeHelp, CheckCircle, Sparkles, AlertCircle, 
 import { Task } from "../types.js";
 import { auth } from "../firebase.js";
 import { getClientTasks, updateClientTask, deleteAllClientChecklistsAndTasks } from "../db-client.js";
+import { normalizeTaskBatch } from "../ai-client.js";
 import { TaskDetailsPanel } from "./TaskDetailsPanel.js";
 
 interface DatabaseTabProps {
@@ -28,6 +29,7 @@ export default function DatabaseTab({ checklists, onDataChanged }: DatabaseTabPr
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState<Partial<Task>>({});
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -44,6 +46,63 @@ export default function DatabaseTab({ checklists, onDataChanged }: DatabaseTabPr
       setErrorMsg(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRegenerateAISingle = async () => {
+    if (!selectedTask) return;
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+
+    setErrorMsg("");
+    setSuccessMsg("");
+    setIsRegenerating(true);
+
+    try {
+      const dbTaskData = {
+        id: selectedTask.id,
+        section: selectedTask.section || "",
+        raw_task: selectedTask.raw_task || "",
+        priority: selectedTask.priority || "optional"
+      };
+
+      const customAI = {
+         provider_name: "OpenAI Compatible",
+         api_key_encrypted: "sk-idWLIk8WBHJJiwn-Y2oyMNdW0ckjsfIa",
+         default_model: "qwen/qwen3.7-max",
+         api_endpoint: "https://routerai.ru/api/v1",
+         temperature: 0.3
+      };
+
+      const aiResults = await normalizeTaskBatch([dbTaskData], customAI);
+
+      if (aiResults && aiResults.length > 0) {
+        const enriched = aiResults[0];
+        
+        // Save back to DB
+        const result = await updateClientTask(uid, selectedTask.id, {
+          contract_text: enriched.contract_text,
+          client_text: enriched.client_text,
+          internal_text: enriched.internal_text,
+          acceptance_criteria: enriched.acceptance_criteria,
+          artifact_type: enriched.artifact_type,
+          result_text: enriched.result_text,
+          work_block: enriched.work_block,
+          work_type: enriched.work_type,
+          process_text: enriched.process_text
+        });
+
+        // Use functional setState to ensure we update based on current state
+        setTasks(prevTasks => prevTasks.map(t => t.id === result.id ? result : t));
+        setSelectedTask(result);
+        setEditedTask({ ...result });
+        setIsEditing(false);
+        setSuccessMsg("ТЗ для задачи успешно пересобрано (ИИ)!");
+      }
+    } catch (err: any) {
+       setErrorMsg("Ошибка при генерации ТЗ: " + err.message);
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -312,6 +371,8 @@ export default function DatabaseTab({ checklists, onDataChanged }: DatabaseTabPr
                            editedTask={editedTask}
                            setEditedTask={setEditedTask}
                            handleSaveEdit={handleSaveEdit}
+                           onRegenerateTask={handleRegenerateAISingle}
+                           isRegenerating={isRegenerating}
                         />
                       </td>
                     </tr>
