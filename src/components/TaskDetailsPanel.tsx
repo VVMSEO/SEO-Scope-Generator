@@ -100,17 +100,16 @@ export function TaskDetailsPanel({
             </div>
 
             <div>
-              <span className="block text-[10px] font-semibold text-slate-500">Срок по умолчанию</span>
+              <span className="block text-[10px] font-semibold text-slate-500">Срок по умолчанию (Месяц)</span>
               {isEditing ? (
-                <select
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
                   value={editedTask.default_month || 1}
-                  onChange={(e) => setEditedTask({ ...editedTask, default_month: parseInt(e.target.value, 10) })}
+                  onChange={(e) => setEditedTask({ ...editedTask, default_month: parseInt(e.target.value, 10) || 1 })}
                   className="w-full text-xs rounded border border-slate-300 px-2 py-1 bg-white outline-none focus:border-blue-500"
-                >
-                  {[1, 2, 3, 4, 5, 6].map(m => (
-                    <option key={m} value={m}>Месяц {m}</option>
-                  ))}
-                </select>
+                />
               ) : (
                 <p className="font-bold text-slate-800 font-mono">Месяц {task.default_month}</p>
               )}

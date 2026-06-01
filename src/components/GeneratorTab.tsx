@@ -362,18 +362,15 @@ export default function GeneratorTab({ projects, checklists, refreshData }: Gene
 
         <div>
           <label className="block text-xs font-semibold text-slate-500 mb-1">Месяц продвижения</label>
-          <select
+          <input
+            type="number"
+            min="1"
+            max="120"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="w-full text-xs rounded-lg border border-slate-200 px-3 py-2 bg-slate-50 outline-none"
-          >
-            <option value="1">Месяц 1 — Старт & Вебмастера</option>
-            <option value="2">Месяц 2 — Техно краул & Robots</option>
-            <option value="3">Месяц 3 — Семантика & Архитектура</option>
-            <option value="4">Месяц 4 — On-page & Метатеги</option>
-            <option value="5">Месяц 5 — Местные карты & E-E-A-T</option>
-            <option value="6">Месяц 6 — Контроль & Коррекция</option>
-          </select>
+            className="w-full text-xs rounded-lg border border-slate-200 px-3 py-2 bg-slate-50 outline-none focus:border-indigo-500 focus:bg-white"
+            placeholder="Номер месяца"
+          />
         </div>
 
         <div>

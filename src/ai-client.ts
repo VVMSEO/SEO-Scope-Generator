@@ -107,7 +107,7 @@ export async function normalizeTaskBatch(
 Правила:
 1. Не меняй ID задач. Для каждой задачи из входа должен быть сгенерирован ответ с тем же ID!
 2. Не теряй исходный смысл.
-3. Определи подходящий месяц по умолчанию от 1 до 6 на основе тематики раздела.
+3. Определи подходящий месяц внедрения (от 1 и далее без ограничений) на основе тематики раздела и логики плана.
 4. Определи блок работ (например: "Технический аудит", "Семантика", "Локальное SEO", "Аналитика", "On-page").
 5. Сформулируй процесс (process_text) как действие или цепочку действий с использованием стрелочек "→".
 6. Сформулируй результат (result_text) как конкретный артефакт.
@@ -140,7 +140,7 @@ ${JSON.stringify(tasksData, null, 2)}
             section: { type: "STRING" },
             raw_task: { type: "STRING" },
             priority: { type: "STRING" },
-            default_month: { type: "INTEGER", description: "Месяц от 1 до 6" },
+            default_month: { type: "INTEGER", description: "Логический месяц (Например, 1, 2, 7, 12)" },
             work_block: { type: "STRING" },
             work_type: { type: "STRING" },
             process_text: { type: "STRING" },
@@ -209,7 +209,7 @@ export async function normalizeTask(
 Правила:
 1. Не меняй ID задачи (должен быть ${taskData.id}).
 2. Не теряй исходный смысл.
-3. Определи подходящий месяц по умолчанию от 1 до 6 на основе тематики раздела.
+3. Определи подходящий месяц внедрения (от 1 и далее без ограничений) на основе тематики раздела и логики плана.
 4. Определи блок работ (например: "Технический аудит", "Семантика", "Локальное SEO", "Аналитика", "On-page").
 5. Сформулируй процесс (process_text) как действие или цепочку действий с использованием стрелочек "→".
 6. Сформулируй результат (result_text) как конкретный артефакт.
@@ -239,7 +239,7 @@ ID: ${taskData.id}
       section: { type: "STRING" },
       raw_task: { type: "STRING" },
       priority: { type: "STRING" },
-      default_month: { type: "INTEGER", description: "Месяц от 1 до 6" },
+      default_month: { type: "INTEGER", description: "Логический месяц (Например, 1, 2, 7, 12)" },
       work_block: { type: "STRING" },
       work_type: { type: "STRING" },
       process_text: { type: "STRING" },
