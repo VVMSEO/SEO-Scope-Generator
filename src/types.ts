@@ -95,6 +95,7 @@ export interface GeneratedScope {
   month: number;
   output_mode: 'contract' | 'client' | 'internal' | 'all' | string;
   generated_json: any; // Follows JSON Schema of generated scope
+  draft_revised_json?: any; // Temporarily stores reviewer's revised scope
   contract_text?: string;
   client_text?: string;
   internal_checklist?: string;

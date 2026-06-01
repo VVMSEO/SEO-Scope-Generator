@@ -231,15 +231,37 @@ export default function GeneratorTab({ projects, checklists, refreshData }: Gene
 
       const notes = `### Замечания аудитора:\n${reviewReport.errors.map(e => `- ❌ ${e}`).join('\n')}\n\n### Пропущенные/Лишние задачи:\n- Пропущены: ${reviewReport.missing_tasks_idsOrTitles.join(', ') || 'нет'}\n- Лишние: ${reviewReport.extra_tasks_idsOrTitles.join(', ') || 'нет'}`;
       
-      const r = reviewReport.revised_scope;
-      const contractText = r.work_blocks.map(b => `${b.block_title}:\n${b.contract_text}`).join('\n\n');
-      const clientText = r.work_blocks.map(b => `${b.block_title}:\nПроцесс: ${b.process}\nРезультат: ${b.result}\n${b.client_text}`).join('\n\n');
-      const internalChecklist = r.work_blocks.map(b => `${b.block_title}:\n` + r.work_blocks.flatMap(wb => wb.internal_tasks).map(it => `[ ] ${it}`).join('\n')).join('\n\n');
-
       const updated = await updateClientScope(uid, activeScope.id, {
         reviewer_notes: notes,
-        generated_json: r,
+        draft_revised_json: reviewReport.revised_scope,
         status: 'reviewed',
+        updated_at: new Date().toISOString()
+      });
+
+      setActiveScope(updated);
+      setSuccessMsg("AI-Reviewer аудит качества завершен! Просмотрите замечания.");
+      refreshData();
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setReviewing(false);
+    }
+  };
+
+  const applyAIRevision = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!activeScope || !uid || !activeScope.draft_revised_json) return;
+    
+    try {
+      const r = activeScope.draft_revised_json;
+      const contractText = r.work_blocks.map((b: any) => `${b.block_title}:\n${b.contract_text}`).join('\n\n');
+      const clientText = r.work_blocks.map((b: any) => `${b.block_title}:\nПроцесс: ${b.process}\nРезультат: ${b.result}\n${b.client_text}`).join('\n\n');
+      // Fix potential nesting issue in internalChecklist
+      const internalChecklist = r.work_blocks.map((b: any) => `${b.block_title}:\n` + (b.internal_tasks || []).map((it: string) => `[ ] ${it}`).join('\n')).join('\n\n');
+
+      const updated = await updateClientScope(uid, activeScope.id, {
+        generated_json: r,
+        draft_revised_json: null, // clear draft
         version: activeScope.version + 1,
         contract_text: contractText,
         client_text: clientText,
@@ -248,12 +270,10 @@ export default function GeneratorTab({ projects, checklists, refreshData }: Gene
       });
 
       setActiveScope(updated);
-      setSuccessMsg("AI-Reviewer аудит качества завершен! Исправленный план синхронизирован.");
+      setSuccessMsg("План успешно доработан на основе рекомендаций AI-Reviewer!");
       refreshData();
     } catch (err: any) {
-      setErrorMsg(err.message);
-    } finally {
-      setReviewing(false);
+      setErrorMsg("Ошибка при доработке: " + err.message);
     }
   };
 
@@ -710,6 +730,15 @@ export default function GeneratorTab({ projects, checklists, refreshData }: Gene
             {activeScope && activeScope.reviewer_notes ? (
               <div className="space-y-3 font-sans leading-relaxed text-slate-700 bg-indigo-50/40 p-3.5 rounded-lg border border-indigo-100 text-xs whitespace-pre-line">
                 {activeScope.reviewer_notes}
+                {activeScope.draft_revised_json && (
+                  <button
+                    onClick={applyAIRevision}
+                    className="w-full mt-3 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Доработать план</span>
+                  </button>
+                )}
               </div>
             ) : (
               <div className="text-slate-400 text-xs py-10 text-center bg-slate-50 rounded-lg border border-dashed border-slate-200">
